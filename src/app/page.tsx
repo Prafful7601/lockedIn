@@ -8,7 +8,7 @@ import { todayKey, formatSeconds } from "@/lib/date";
 import CoachBanner from "@/components/CoachBanner";
 import AgentBar from "@/components/AgentBar";
 import Heatmap from "@/components/Heatmap";
-import HabitChecklist from "@/components/HabitChecklist";
+import DashboardTasks from "@/components/DashboardTasks";
 
 export const dynamic = "force-dynamic";
 
@@ -174,7 +174,7 @@ export default async function Dashboard() {
               </Link>
             </div>
             <div className="mt-3">
-              <HabitChecklist habits={d.habits} />
+              <DashboardTasks habits={d.habits} />
             </div>
           </section>
         </div>

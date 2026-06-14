@@ -50,6 +50,23 @@ export async function getHealthOverview(days = 7): Promise<HealthGoalOverview[]>
   });
 }
 
+export type CustomProblemRow = {
+  id: number;
+  title: string;
+  source: string | null;
+  difficulty: string | null;
+  url: string | null;
+  notes: string | null;
+  solvedAt: string;
+};
+
+export async function getCustomProblems(): Promise<CustomProblemRow[]> {
+  return prisma.customProblem.findMany({
+    orderBy: [{ solvedAt: "desc" }, { id: "desc" }],
+    select: { id: true, title: true, source: true, difficulty: true, url: true, notes: true, solvedAt: true },
+  });
+}
+
 export type HabitOverview = {
   id: number;
   name: string;

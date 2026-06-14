@@ -58,6 +58,52 @@ export async function deleteHabit(id: number) {
   revalidatePath("/tasks");
 }
 
+// --- custom DSA problems (your own log: Codeforces, CSES, contests…) ---------
+
+export async function addCustomProblem(input: {
+  title: string;
+  source?: string;
+  difficulty?: string;
+  url?: string;
+  notes?: string;
+  solvedAt?: string;
+}) {
+  const title = input.title.trim();
+  if (!title) return;
+  await prisma.customProblem.create({
+    data: {
+      title,
+      source: input.source?.trim() || null,
+      difficulty: input.difficulty?.trim() || null,
+      url: input.url?.trim() || null,
+      notes: input.notes?.trim() || null,
+      solvedAt: input.solvedAt || todayKey(),
+    },
+  });
+  revalidatePath("/dsa");
+  revalidatePath("/");
+}
+
+export async function deleteCustomProblem(id: number) {
+  await prisma.customProblem.delete({ where: { id } });
+  revalidatePath("/dsa");
+  revalidatePath("/");
+}
+
+export async function editCustomProblem(
+  id: number,
+  data: { title?: string; source?: string; difficulty?: string; url?: string; notes?: string },
+) {
+  const patch: Record<string, string | null> = {};
+  if (data.title !== undefined) patch.title = data.title.trim();
+  if (data.source !== undefined) patch.source = data.source.trim() || null;
+  if (data.difficulty !== undefined) patch.difficulty = data.difficulty.trim() || null;
+  if (data.url !== undefined) patch.url = data.url.trim() || null;
+  if (data.notes !== undefined) patch.notes = data.notes.trim() || null;
+  await prisma.customProblem.update({ where: { id }, data: patch });
+  revalidatePath("/dsa");
+}
+
 // --- health goals -----------------------------------------------------------
 
 export async function addHealthGoal(name: string, unit: string, target: number) {
@@ -70,6 +116,20 @@ export async function addHealthGoal(name: string, unit: string, target: number) 
   await prisma.healthGoal.create({
     data: { name: clean, unit: unit.trim(), target, order: (last?.order ?? -1) + 1 },
   });
+  revalidatePath("/");
+  revalidatePath("/health");
+}
+
+export async function editHealthGoal(
+  id: number,
+  data: { name?: string; unit?: string; target?: number },
+) {
+  const patch: Record<string, string | number> = {};
+  if (data.name?.trim()) patch.name = data.name.trim();
+  if (data.unit?.trim()) patch.unit = data.unit.trim();
+  if (typeof data.target === "number" && data.target > 0) patch.target = data.target;
+  if (Object.keys(patch).length === 0) return;
+  await prisma.healthGoal.update({ where: { id }, data: patch });
   revalidatePath("/");
   revalidatePath("/health");
 }

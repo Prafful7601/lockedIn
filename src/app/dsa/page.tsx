@@ -1,18 +1,18 @@
-// DSA tracker — Striver's A2Z sheet. Shows today's task, overall + per-step
-// progress, the DSA streak, and the full clickable sheet.
+// DSA tracker — Striver's A2Z course (tab 1) + your own problem log (tab 2).
 
 import { getSheetProgress } from "@/lib/dsa";
+import { getCustomProblems } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 import { todayKey } from "@/lib/date";
 import { computeStreak } from "@/lib/streaks";
-import TodayDsaCard from "@/components/TodayDsaCard";
-import SheetExplorer from "@/components/SheetExplorer";
 import AgentBar from "@/components/AgentBar";
+import DsaWorkspace from "@/components/DsaWorkspace";
 
 export const dynamic = "force-dynamic";
 
 export default async function DsaPage() {
   const { steps, totalDone, total } = await getSheetProgress();
+  const custom = await getCustomProblems();
 
   const taskRow = await prisma.dsaTask.findUnique({ where: { date: todayKey() } });
   const task = taskRow
@@ -29,10 +29,7 @@ export default async function DsaPage() {
       }
     : null;
 
-  const doneTasks = await prisma.dsaTask.findMany({
-    where: { done: true },
-    select: { date: true },
-  });
+  const doneTasks = await prisma.dsaTask.findMany({ where: { done: true }, select: { date: true } });
   const streak = computeStreak(new Set(doneTasks.map((t) => t.date)), todayKey());
 
   const pct = total ? Math.round((totalDone / total) * 100) : 0;
@@ -43,49 +40,18 @@ export default async function DsaPage() {
       <div>
         <p className="label">DSA tracker</p>
         <h1 className="mt-1 text-2xl font-semibold">
-          Striver&apos;s <span className="text-accent">A2Z</span> Sheet
+          Striver&apos;s <span className="text-accent">A2Z</span> Course
         </h1>
       </div>
 
-      <AgentBar placeholder="e.g. “I finished 3 problems” or “mark today’s DSA done”" />
+      <AgentBar placeholder="e.g. “I finished 3 lectures” or “mark today’s DSA done”" />
 
-      {/* progress + streak strip */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div className="card p-4">
-          <p className="label">Solved</p>
-          <p className="stat mt-1">
-            {totalDone}
-            <span className="text-sm text-muted">/{total}</span>
-          </p>
-        </div>
-        <div className="card p-4">
-          <p className="label">Completion</p>
-          <p className="stat mt-1">{pct}%</p>
-        </div>
-        <div className="card p-4">
-          <p className="label">Steps touched</p>
-          <p className="stat mt-1">
-            {stepsStarted}
-            <span className="text-sm text-muted">/{steps.length}</span>
-          </p>
-        </div>
-        <div className="card p-4">
-          <p className="label">DSA streak</p>
-          <p className="stat mt-1">{streak.current}d</p>
-          <p className="mt-0.5 font-mono text-xs text-muted">longest {streak.longest}d</p>
-        </div>
-      </div>
-
-      <div className="track">
-        <div className="track-fill" style={{ width: `${pct}%` }} />
-      </div>
-
-      <TodayDsaCard task={task} />
-
-      <div>
-        <h2 className="mb-3 text-sm font-semibold">The sheet · 18 steps</h2>
-        <SheetExplorer steps={steps} />
-      </div>
+      <DsaWorkspace
+        steps={steps}
+        task={task}
+        stats={{ totalDone, total, pct, stepsStarted, stepsCount: steps.length, streak }}
+        custom={custom}
+      />
     </div>
   );
 }

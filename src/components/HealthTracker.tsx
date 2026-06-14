@@ -6,11 +6,15 @@
 
 import { useState, useTransition } from "react";
 import type { HealthGoalOverview } from "@/lib/data";
-import { addHealthGoal, deleteHealthGoal, logHealth } from "@/app/actions";
+import { addHealthGoal, deleteHealthGoal, editHealthGoal, logHealth } from "@/app/actions";
 
 function GoalCard({ goal }: { goal: HealthGoalOverview }) {
   const [pending, startTransition] = useTransition();
   const [draft, setDraft] = useState<string>(String(goal.todayValue));
+  const [editing, setEditing] = useState(false);
+  const [eName, setEName] = useState(goal.name);
+  const [eUnit, setEUnit] = useState(goal.unit);
+  const [eTarget, setETarget] = useState(String(goal.target));
   const pct = goal.target ? Math.min(100, (goal.todayValue / goal.target) * 100) : 0;
   const hit = goal.todayValue >= goal.target;
   const maxHist = Math.max(goal.target, ...goal.history.map((h) => h.value), 1);
@@ -20,15 +24,29 @@ function GoalCard({ goal }: { goal: HealthGoalOverview }) {
     startTransition(() => void logHealth(goal.id, v));
   };
 
+  const saveEdit = () => {
+    setEditing(false);
+    startTransition(() =>
+      void editHealthGoal(goal.id, { name: eName, unit: eUnit, target: parseFloat(eTarget) }),
+    );
+  };
+
   return (
     <div className={`panel p-5 ${pending ? "opacity-70" : ""}`}>
       <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-100">{goal.name}</h3>
-          <p className="label mt-0.5">
-            target {goal.target} {goal.unit} · avg {goal.weekAvg}/day
-          </p>
-        </div>
+        {editing ? (
+          <div className="flex flex-1 flex-wrap items-end gap-2">
+            <input value={eName} onChange={(e) => setEName(e.target.value)} className="w-28 rounded border border-ink-500 bg-ink-900 px-2 py-1 text-sm text-gray-100 outline-none focus:border-accent" />
+            <input value={eTarget} onChange={(e) => setETarget(e.target.value)} inputMode="decimal" className="w-16 rounded border border-ink-500 bg-ink-900 px-2 py-1 text-sm text-gray-100 outline-none focus:border-accent" />
+            <input value={eUnit} onChange={(e) => setEUnit(e.target.value)} className="w-24 rounded border border-ink-500 bg-ink-900 px-2 py-1 text-sm text-gray-100 outline-none focus:border-accent" />
+            <button onClick={saveEdit} className="btn px-2 py-1 text-xs">Save</button>
+          </div>
+        ) : (
+          <button onClick={() => { setEName(goal.name); setEUnit(goal.unit); setETarget(String(goal.target)); setEditing(true); }} className="text-left" title="Click to edit goal">
+            <h3 className="text-sm font-semibold text-gray-100">{goal.name}</h3>
+            <p className="label mt-0.5">target {goal.target} {goal.unit} · avg {goal.weekAvg}/day · ✎</p>
+          </button>
+        )}
         <button
           onClick={() => {
             if (confirm(`Remove "${goal.name}"?`)) startTransition(() => void deleteHealthGoal(goal.id));

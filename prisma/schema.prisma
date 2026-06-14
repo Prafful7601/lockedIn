@@ -52,6 +52,19 @@ model DsaProblem {
   @@index([step])
 }
 
+// Your own solved problems from anywhere (Codeforces, CSES, LeetCode contests…)
+// — separate from the Striver A2Z sheet, fully user-editable.
+model CustomProblem {
+  id         Int      @id @default(autoincrement())
+  title      String
+  source     String? // "Codeforces", "LeetCode", "CSES", "AtCoder", ...
+  difficulty String? // free-form: "1500", "Medium", etc.
+  url        String?
+  notes      String?
+  solvedAt   String // "YYYY-MM-DD"
+  createdAt  DateTime @default(now())
+}
+
 model DsaTask {
   id          Int       @id @default(autoincrement())
   date        String    @unique // one generated task per day, "YYYY-MM-DD"

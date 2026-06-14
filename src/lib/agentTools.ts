@@ -57,6 +57,20 @@ export const TOOL_DECLS: ToolDecl[] = [
     },
   },
   {
+    name: "log_custom_problem",
+    description:
+      "Log a problem the user solved OUTSIDE the Striver sheet (Codeforces, CSES, AtCoder, a contest, etc.). Use when they mention solving a specific problem from another platform.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        source: { type: "string" },
+        difficulty: { type: "string" },
+      },
+      required: ["title"],
+    },
+  },
+  {
     name: "log_health",
     description: "Log today's value for a health goal (e.g. water, sleep, workout). Match goal by name.",
     parameters: {
@@ -162,6 +176,19 @@ export async function executeTool(call: ToolCall): Promise<string> {
         data: { done: true, completedAt: new Date() },
       });
       return `✓ Marked ${next.length} problem(s) solved (through “${next[next.length - 1].title}”)`;
+    }
+    case "log_custom_problem": {
+      const title = str(a.title);
+      if (!title) return "✗ log_custom_problem: missing title";
+      await prisma.customProblem.create({
+        data: {
+          title,
+          source: str(a.source) || null,
+          difficulty: str(a.difficulty) || null,
+          solvedAt: date,
+        },
+      });
+      return `✓ Logged “${title}”${str(a.source) ? ` (${str(a.source)})` : ""} to My Problems`;
     }
     case "log_health": {
       const g = await findGoal(str(a.goal));
