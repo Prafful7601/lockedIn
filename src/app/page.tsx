@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { getDashboardData } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
-import { todayKey, formatSeconds } from "@/lib/date";
+import { todayKey, formatSeconds, currentHour, formatDayLabel } from "@/lib/date";
 import CoachBanner from "@/components/CoachBanner";
 import AgentBar from "@/components/AgentBar";
 import Heatmap from "@/components/Heatmap";
@@ -13,7 +13,7 @@ import DashboardTasks from "@/components/DashboardTasks";
 export const dynamic = "force-dynamic";
 
 function greeting(): string {
-  const h = new Date().getHours();
+  const h = currentHour();
   if (h < 5) return "Burning the midnight oil";
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
@@ -65,11 +65,7 @@ export default async function Dashboard() {
       ? (d.weekTotals.vscode / d.weekTotals.youtube).toFixed(1) + "×"
       : "∞";
 
-  const todayDate = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  });
+  const todayDate = formatDayLabel();
 
   // a motivating one-liner based on real state
   const momentum = d.dsaTask.done

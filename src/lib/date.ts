@@ -45,6 +45,26 @@ export function dayDiff(a: string, b: string): number {
   return Math.round((Date.UTC(ay, am - 1, ad) - Date.UTC(by, bm - 1, bd)) / 86_400_000);
 }
 
+// Current hour (0-23) in the app's timezone — for greetings, etc.
+export function currentHour(): number {
+  const h = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TZ,
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  return parseInt(h, 10) % 24;
+}
+
+// Friendly "Sunday, Jun 15" label in the app's timezone.
+export function formatDayLabel(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat(undefined, {
+    timeZone: APP_TZ,
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+}
+
 export function formatSeconds(total: number): string {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
