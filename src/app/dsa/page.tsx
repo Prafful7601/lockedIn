@@ -48,33 +48,33 @@ export default async function DsaPage() {
 
       {/* progress + streak strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div className="panel-raised p-4">
+        <div className="card p-4">
           <p className="label">Solved</p>
           <p className="stat mt-1">
             {totalDone}
             <span className="text-sm text-muted">/{total}</span>
           </p>
         </div>
-        <div className="panel-raised p-4">
+        <div className="card p-4">
           <p className="label">Completion</p>
           <p className="stat mt-1">{pct}%</p>
         </div>
-        <div className="panel-raised p-4">
+        <div className="card p-4">
           <p className="label">Steps touched</p>
           <p className="stat mt-1">
             {stepsStarted}
             <span className="text-sm text-muted">/{steps.length}</span>
           </p>
         </div>
-        <div className="panel-raised p-4">
+        <div className="card p-4">
           <p className="label">DSA streak</p>
           <p className="stat mt-1">{streak.current}d</p>
           <p className="mt-0.5 font-mono text-xs text-muted">longest {streak.longest}d</p>
         </div>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-ink-700">
-        <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+      <div className="track">
+        <div className="track-fill" style={{ width: `${pct}%` }} />
       </div>
 
       <TodayDsaCard task={task} />
