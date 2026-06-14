@@ -3,7 +3,7 @@
 // Full recurring-task manager: add, rename (inline), delete, reorder, check off
 // today, edit any of the last 14 days, and see current/longest streak + rate.
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import type { HabitOverview } from "@/lib/data";
 import {
   addHabit,
@@ -12,6 +12,18 @@ import {
   moveHabit,
   toggleHabitOnDate,
 } from "@/app/actions";
+
+// Minimal typings for the browser SpeechRecognition API (not in TS lib DOM).
+type SpeechResultLike = { results: { [j: number]: { transcript: string } }[] };
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: (e: SpeechResultLike) => void;
+  onerror: () => void;
+  onend: () => void;
+  start: () => void;
+};
 
 function weekdayShort(date: string) {
   return new Date(date + "T00:00:00").toLocaleDateString(undefined, { weekday: "narrow" });
@@ -151,6 +163,35 @@ export default function TaskManager({
 }) {
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
+  const [listening, setListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+
+  useEffect(() => {
+    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+    setVoiceSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
+  }, []);
+
+  function startVoice() {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+    };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    setListening(true);
+    rec.onresult = (e: SpeechResultLike) => {
+      const text = e.results[0][0].transcript.trim();
+      // capitalize first letter, drop trailing period
+      setName(text.charAt(0).toUpperCase() + text.slice(1).replace(/\.$/, ""));
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    rec.start();
+  }
 
   return (
     <div className="space-y-4">
@@ -168,9 +209,19 @@ export default function TaskManager({
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="New recurring task, e.g. “Apply to 1 job”"
+          placeholder={listening ? "Listening… speak your task" : "New recurring task, e.g. “Apply to 1 job”"}
           className="flex-1 rounded-md border border-ink-600 bg-ink-800 px-3 py-2 text-sm text-gray-100 outline-none placeholder:text-muted focus:border-accent"
         />
+        {voiceSupported && (
+          <button
+            type="button"
+            onClick={startVoice}
+            title="Add by voice"
+            className={`btn px-3 ${listening ? "border-accent text-accent animate-pulse-soft" : ""}`}
+          >
+            🎤
+          </button>
+        )}
         <button type="submit" disabled={pending || !name.trim()} className="btn-accent">
           + Add
         </button>

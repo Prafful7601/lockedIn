@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import LogoutButton from "@/components/LogoutButton";
+import { gateEnabled } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,6 +31,7 @@ export default function RootLayout({
                 </span>
               </Link>
               <Nav />
+              {gateEnabled() && <LogoutButton />}
             </div>
           </header>
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">

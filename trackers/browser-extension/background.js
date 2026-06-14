@@ -17,23 +17,25 @@ async function flush() {
   if (buffer <= 0) return;
   const seconds = buffer;
   buffer = 0;
+  const endpoint = await getEndpoint();
   try {
-    const endpoint = await getEndpoint();
-    await fetch(endpoint, {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source: "youtube", seconds }),
     });
+    console.log(`[LockedIn] flushed ${seconds}s → ${endpoint} (HTTP ${res.status})`);
   } catch (err) {
     buffer += seconds; // keep it for the next flush if the server is down
-    console.warn("[LockedIn] YT flush failed:", err && err.message);
+    console.warn(`[LockedIn] YT flush FAILED → ${endpoint}:`, err && err.message);
   }
 }
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === "yt-tick" && typeof msg.seconds === "number") {
     buffer += msg.seconds;
-    if (buffer >= 120) flush(); // flush early on long sessions
+    console.log(`[LockedIn] buffered ${msg.seconds}s (total ${buffer}s)`);
+    if (buffer >= 30) flush(); // flush quickly so data shows up fast
   }
 });
 

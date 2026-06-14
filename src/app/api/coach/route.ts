@@ -24,10 +24,12 @@ export async function POST(req: Request) {
 
   let mode: "briefing" | "plan" | "post" = "briefing";
   let refresh = false;
+  let instructions = "";
   try {
     const body = await req.json();
     if (body?.mode === "plan" || body?.mode === "post") mode = body.mode;
     refresh = !!body?.refresh;
+    if (typeof body?.instructions === "string") instructions = body.instructions.slice(0, 500).trim();
   } catch {
     // empty body → default briefing
   }
@@ -50,7 +52,10 @@ export async function POST(req: Request) {
   if (mode === "briefing") {
     prompt = `Here is my activity snapshot:\n\n${summaryText}\n\nWrite my daily briefing: 3-4 short sentences. Call out what's going well (use real numbers), the single most important thing to focus on today, and one specific nudge. No greeting, no sign-off, no markdown headings.`;
   } else if (mode === "plan") {
-    prompt = `Here is my activity snapshot:\n\n${summaryText}\n\nPlan my day: produce a concrete, ordered task list of 4-7 items I can do today to move my DSA + career + health forward. Be specific (name the DSA topic/problem to attempt, the habit to hit, etc.). Format as a numbered list only, one line each, no preamble.`;
+    const extra = instructions
+      ? `\n\nIMPORTANT — tailor the plan to these instructions from me: "${instructions}". Honor them (timing, energy, constraints) while still moving my goals forward.`
+      : "";
+    prompt = `Here is my activity snapshot:\n\n${summaryText}\n\nPlan my day: produce a concrete, ordered task list of 4-7 items I can do today to move my DSA + career + health forward. Be specific (name the DSA topic/problem to attempt, the habit to hit, etc.). Format as a numbered list only, one line each, no preamble.${extra}`;
   } else {
     prompt = `Here is my activity snapshot for the week:\n\n${summaryText}\n\nWrite a LinkedIn "build in public" progress post about my week. Use my real numbers (coding hours, problems solved on Striver's A2Z sheet, streaks). Voice: first-person, genuine, a little energetic, humble — a beginner sharing the grind, not bragging. ~120-180 words. Start with a hook line. End with one short reflection or what's next. You may use 2-4 relevant hashtags on the last line. No markdown headings, no "Here is your post" preamble — output only the post text.`;
   }

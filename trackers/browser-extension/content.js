@@ -1,21 +1,23 @@
 // Runs on YouTube pages. Every TICK seconds, if a <video> is actually playing
-// (not paused/ended and the tab is visible), report the elapsed time to the
-// background service worker. The background worker does the POST so we don't
-// fight the page's network rules.
+// (not paused/ended), report the elapsed time to the background service worker.
+// We count even when the tab is backgrounded — YouTube keeps playing audio, so
+// that's still "watch time".
 
-const TICK = 15; // seconds between checks
+const TICK = 10; // seconds between checks
 
-function isWatching() {
+function isPlaying() {
   const v = document.querySelector("video");
   if (!v) return false;
-  // playing = not paused, not ended, has data, and progressing
-  const playing = !v.paused && !v.ended && v.readyState > 2 && v.currentTime > 0;
-  const visible = document.visibilityState === "visible";
-  return playing && visible;
+  return !v.paused && !v.ended && v.readyState > 2 && v.currentTime > 0;
 }
 
+console.log("[LockedIn] YouTube tracker injected on", location.href);
+
 setInterval(() => {
-  if (isWatching()) {
-    chrome.runtime.sendMessage({ type: "yt-tick", seconds: TICK }).catch(() => {});
+  if (isPlaying()) {
+    console.log("[LockedIn] +" + TICK + "s (video playing)");
+    chrome.runtime.sendMessage({ type: "yt-tick", seconds: TICK }).catch((e) => {
+      console.warn("[LockedIn] sendMessage failed:", e?.message);
+    });
   }
 }, TICK * 1000);

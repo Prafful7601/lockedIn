@@ -19,12 +19,13 @@ export default function CoachBanner({
   const [briefingLoading, setBriefingLoading] = useState(false);
   const [briefingError, setBriefingError] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanState>({ loading: false, text: null, error: null });
+  const [instructions, setInstructions] = useState("");
 
-  async function callCoach(mode: "briefing" | "plan", refresh = false) {
+  async function callCoach(mode: "briefing" | "plan", refresh = false, extra = "") {
     const res = await fetch("/api/coach", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode, refresh }),
+      body: JSON.stringify({ mode, refresh, instructions: extra }),
     });
     return res.json() as Promise<{ configured: boolean; text?: string; error?: string }>;
   }
@@ -46,7 +47,7 @@ export default function CoachBanner({
   async function planMyDay() {
     setPlan({ loading: true, text: null, error: null });
     try {
-      const data = await callCoach("plan");
+      const data = await callCoach("plan", false, instructions);
       if (data.error) setPlan({ loading: false, text: null, error: data.error });
       else setPlan({ loading: false, text: data.text ?? null, error: null });
     } catch (e) {
@@ -100,6 +101,20 @@ export default function CoachBanner({
             No briefing yet — hit <span className="font-mono text-accent">Generate</span> for today&apos;s focus.
           </p>
         )}
+      </div>
+
+      {/* customize-my-day prompt */}
+      <div className="mt-4 flex flex-col gap-2 border-t border-ink-600 pt-4 sm:flex-row">
+        <input
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !plan.loading && planMyDay()}
+          placeholder="Tell the coach anything… e.g. “interview at 3pm, keep DSA light”"
+          className="flex-1 rounded-lg border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-gray-100 outline-none placeholder:text-muted focus:border-accent"
+        />
+        <button onClick={planMyDay} disabled={plan.loading} className="btn-accent">
+          {plan.loading ? "Planning…" : "✦ Customize my day"}
+        </button>
       </div>
 
       {(plan.text || plan.error) && (
