@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:push:turso": "node scripts/push-to-turso.mjs",
     "db:reset:data": "node scripts/reset-data.mjs",
+    "db:sync:dsa": "tsx scripts/sync-dsa.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
