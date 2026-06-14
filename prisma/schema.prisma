@@ -1,0 +1,129 @@
+// Grindstone database schema
+// SQLite, file-based. No external DB server needed.
+// NOTE: SQLite (via Prisma) has no enum/native-JSON types, so "type"-style
+// fields are plain strings and structured data is stored as JSON strings.
+
+generator client {
+  provider        = "prisma-client-js"
+  // driverAdapters lets us use the Turso (libSQL) adapter in production while
+  // keeping the plain SQLite file locally.
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// TIME TRACKING
+// Raw, append-only pings from external trackers (VS Code, YouTube watcher...).
+// We append a row per ping and aggregate by (date, source) on read. Repeated
+// pings simply sum — that is what "idempotent-friendly" means here.
+// ---------------------------------------------------------------------------
+model TimeEntry {
+  id        Int      @id @default(autoincrement())
+  source    String // "vscode" | "youtube" (free-form, but these are the two we chart)
+  seconds   Int
+  project   String? // optional label, e.g. repo name or video channel
+  date      String // local day bucket, "YYYY-MM-DD"
+  createdAt DateTime @default(now())
+
+  @@index([date, source])
+}
+
+// ---------------------------------------------------------------------------
+// DSA SHEET (Striver A2Z) + DAILY TASKS
+// One row per problem on the sheet. `key` is a stable id from roadmap.ts so
+// reseeding never wipes your checked-off progress.
+// ---------------------------------------------------------------------------
+model DsaProblem {
+  key         String    @id
+  step        Int // Striver step number (1..18)
+  stepName    String
+  topic       String
+  title       String
+  difficulty  String // "easy" | "medium" | "hard"
+  url         String?
+  order       Int // global position across the whole sheet
+  done        Boolean   @default(false)
+  completedAt DateTime?
+
+  @@index([step])
+}
+
+model DsaTask {
+  id          Int       @id @default(autoincrement())
+  date        String    @unique // one generated task per day, "YYYY-MM-DD"
+  topicName   String // the Striver topic/step this day's problems came from
+  difficulty  String // representative difficulty for the day
+  problems    String // JSON array string: [{ key, title, difficulty, url? }]
+  done        Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// HABITS (DSA + user-defined recurring tasks) + their daily logs
+// A habit's "streak" is computed from consecutive HabitLog.done entries.
+// type: "dsa" (the special auto-generated DSA habit) | "recurring" (user tasks)
+// ---------------------------------------------------------------------------
+model Habit {
+  id        Int        @id @default(autoincrement())
+  name      String
+  type      String     @default("recurring")
+  active    Boolean    @default(true)
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  logs      HabitLog[]
+}
+
+model HabitLog {
+  id      Int      @id @default(autoincrement())
+  habitId Int
+  date    String // "YYYY-MM-DD"
+  done    Boolean  @default(true)
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// HEALTH GOALS + daily logs
+// ---------------------------------------------------------------------------
+model HealthGoal {
+  id        Int         @id @default(autoincrement())
+  name      String // "Water", "Sleep", "Workout"
+  unit      String // "glasses", "hours", "minutes"
+  target    Float
+  active    Boolean     @default(true)
+  order     Int         @default(0)
+  logs      HealthLog[]
+}
+
+model HealthLog {
+  id      Int        @id @default(autoincrement())
+  goalId  Int
+  date    String // "YYYY-MM-DD"
+  value   Float
+  goal    HealthGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, date])
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// AI COACH OUTPUT CACHE
+// Cache generated text per day/kind so we don't re-call the API on every load.
+// kind: "briefing" | "plan" | "post"
+// ---------------------------------------------------------------------------
+model CoachMessage {
+  id        Int      @id @default(autoincrement())
+  date      String // "YYYY-MM-DD"
+  kind      String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@unique([date, kind])
+}

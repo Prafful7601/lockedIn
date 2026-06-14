@@ -1,0 +1,33 @@
+{
+  "name": "lockedin-vscode-tracker",
+  "displayName": "LockedIn Time Tracker",
+  "description": "Sends your active coding time to LockedIn's /api/track endpoint.",
+  "version": "0.1.0",
+  "publisher": "lockedin",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "LockedIn",
+      "properties": {
+        "lockedin.endpoint": {
+          "type": "string",
+          "default": "http://localhost:3000/api/track",
+          "description": "URL of your LockedIn /api/track endpoint."
+        },
+        "lockedin.idleSeconds": {
+          "type": "number",
+          "default": 120,
+          "description": "Stop counting after this many seconds with no edits/keystrokes."
+        },
+        "lockedin.flushSeconds": {
+          "type": "number",
+          "default": 60,
+          "description": "How often to send accumulated active time."
+        }
+      }
+    }
+  }
+}

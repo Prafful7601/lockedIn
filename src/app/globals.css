@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", "Fira Code", monospace;
+}
+
+html,
+body {
+  background-color: #0a0c10;
+  color: #e6edf3;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular figures everywhere numbers live in mono. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thin custom scrollbar to keep the control-room vibe. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0c10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2630;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b3440;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-ink-600 bg-ink-800;
+  }
+  .panel-raised {
+    @apply rounded-lg border border-ink-600 bg-ink-700;
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-[0.12em] text-muted;
+  }
+  .stat {
+    @apply font-mono tabular-nums text-2xl text-accent;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-ink-600 bg-ink-700 px-3 py-1.5 text-sm text-gray-200 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-ink-900 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}
