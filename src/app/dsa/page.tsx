@@ -7,6 +7,7 @@ import { todayKey } from "@/lib/date";
 import { computeStreak } from "@/lib/streaks";
 import TodayDsaCard from "@/components/TodayDsaCard";
 import SheetExplorer from "@/components/SheetExplorer";
+import AgentBar from "@/components/AgentBar";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,8 @@ export default async function DsaPage() {
           Striver&apos;s <span className="text-accent">A2Z</span> Sheet
         </h1>
       </div>
+
+      <AgentBar placeholder="e.g. “I finished 3 problems” or “mark today’s DSA done”" />
 
       {/* progress + streak strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -6,6 +6,7 @@ import { getDashboardData } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 import { todayKey, formatSeconds } from "@/lib/date";
 import CoachBanner from "@/components/CoachBanner";
+import AgentBar from "@/components/AgentBar";
 import Heatmap from "@/components/Heatmap";
 import HabitChecklist from "@/components/HabitChecklist";
 
@@ -105,6 +106,9 @@ export default async function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* Jarvis command bar */}
+      <AgentBar />
 
       {/* Coach briefing */}
       <CoachBanner apiKeyConfigured={apiKeyConfigured} briefing={cached?.content ?? null} />
