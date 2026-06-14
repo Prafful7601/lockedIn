@@ -3,10 +3,13 @@
 //
 // POST body: { source: "youtube", seconds }
 
-const DEFAULT_ENDPOINT = "http://localhost:3000/api/track";
+// Defaults to your live site so tracking works 24/7 without a local server.
+// Override anytime via the extension's Options.
+const DEFAULT_ENDPOINT = "https://locked-in-cyan.vercel.app/api/track";
 const FLUSH_ALARM = "lockedin-flush";
 
 let buffer = 0;
+let lastProject = null;
 
 async function getEndpoint() {
   const { endpoint } = await chrome.storage.sync.get("endpoint");
@@ -22,7 +25,7 @@ async function flush() {
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source: "youtube", seconds }),
+      body: JSON.stringify({ source: "youtube", seconds, project: lastProject || undefined }),
     });
     console.log(`[LockedIn] flushed ${seconds}s → ${endpoint} (HTTP ${res.status})`);
   } catch (err) {
@@ -34,7 +37,7 @@ async function flush() {
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === "yt-tick" && typeof msg.seconds === "number") {
     buffer += msg.seconds;
-    console.log(`[LockedIn] buffered ${msg.seconds}s (total ${buffer}s)`);
+    if (msg.project) lastProject = msg.project;
     if (buffer >= 30) flush(); // flush quickly so data shows up fast
   }
 });

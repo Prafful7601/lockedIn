@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { getDashboardData } from "@/lib/data";
+import { getFocusNudges } from "@/lib/insights";
 import { prisma } from "@/lib/prisma";
 import { todayKey, formatSeconds, currentHour, formatDayLabel } from "@/lib/date";
 import CoachBanner from "@/components/CoachBanner";
@@ -59,6 +60,13 @@ export default async function Dashboard() {
   const cached = await prisma.coachMessage.findUnique({
     where: { date_kind: { date: todayKey(), kind: "briefing" } },
   });
+  const nudges = await getFocusNudges();
+
+  const toneClass = {
+    accent: "border-accent/30 text-accent",
+    amber: "border-viz-amber/30 text-viz-amber",
+    rose: "border-viz-rose/30 text-viz-rose",
+  } as const;
 
   const codingVsYt =
     d.weekTotals.youtube > 0
@@ -102,6 +110,16 @@ export default async function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* Smart focus nudges */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {nudges.map((n, idx) => (
+          <div key={idx} className={`flex items-start gap-2 rounded-lg border bg-ink-800/50 p-3 ${toneClass[n.tone]}`}>
+            <span className="text-base leading-none">{n.icon}</span>
+            <p className="text-xs leading-snug text-gray-200">{n.text}</p>
+          </div>
+        ))}
+      </div>
 
       {/* Jarvis command bar */}
       <AgentBar />

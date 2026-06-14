@@ -11,13 +11,19 @@ function isPlaying() {
   return !v.paused && !v.ended && v.readyState > 2 && v.currentTime > 0;
 }
 
+// The video title (so Insights can show WHAT you watch, not just how long).
+function videoTitle() {
+  const el = document.querySelector("h1.ytd-watch-metadata, h1.title");
+  const t = (el?.textContent || document.title).replace(/^\(\d+\)\s*/, "").replace(/ - YouTube$/, "");
+  return t.trim().slice(0, 80);
+}
+
 console.log("[LockedIn] YouTube tracker injected on", location.href);
 
 setInterval(() => {
   if (isPlaying()) {
-    console.log("[LockedIn] +" + TICK + "s (video playing)");
-    chrome.runtime.sendMessage({ type: "yt-tick", seconds: TICK }).catch((e) => {
-      console.warn("[LockedIn] sendMessage failed:", e?.message);
-    });
+    chrome.runtime
+      .sendMessage({ type: "yt-tick", seconds: TICK, project: videoTitle() })
+      .catch((e) => console.warn("[LockedIn] sendMessage failed:", e?.message));
   }
 }, TICK * 1000);

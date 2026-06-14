@@ -55,6 +55,16 @@ export function currentHour(): number {
   return parseInt(h, 10) % 24;
 }
 
+// Hour (0-23) of a given date in the app's timezone — for peak-hours analysis.
+export function hourInAppTz(d: Date): number {
+  const h = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TZ,
+    hour: "2-digit",
+    hour12: false,
+  }).format(d);
+  return parseInt(h, 10) % 24;
+}
+
 // Friendly "Sunday, Jun 15" label in the app's timezone.
 export function formatDayLabel(d: Date = new Date()): string {
   return new Intl.DateTimeFormat(undefined, {

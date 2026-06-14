@@ -6,6 +6,7 @@ import { prisma } from "./prisma";
 import { lastNDays, todayKey, formatSeconds } from "./date";
 import { computeStreak } from "./streaks";
 import { getSheetProgress } from "./dsa";
+import { getInsights } from "./insights";
 
 export type CoachContext = {
   today: string;
@@ -68,12 +69,22 @@ export async function buildCoachContext(): Promise<CoachContext> {
     (g) => `- ${g.name}: ${g.logs[0]?.value ?? 0}/${g.target} ${g.unit} today`,
   );
 
+  const ins = await getInsights();
+  const peakLabel =
+    ins.peakHour === null ? "n/a" : `${((ins.peakHour + 11) % 12) + 1}${ins.peakHour < 12 ? "am" : "pm"}`;
+
   const summaryText = [
     `Date: ${today}`,
     ``,
     `TIME (today / last 7 days):`,
     `- Coding: ${formatSeconds(codingToday)} today, ${formatSeconds(coding)} this week`,
     `- YouTube: ${formatSeconds(youtubeToday)} today, ${formatSeconds(youtube)} this week`,
+    ``,
+    `TRENDS:`,
+    `- Coding this week vs last: ${ins.coding.deltaPct === null ? "n/a" : (ins.coding.deltaPct >= 0 ? "+" : "") + ins.coding.deltaPct + "%"}`,
+    `- DSA solved this week: ${ins.dsaThisWeek} (per-week last 4: ${ins.dsaPerWeek.join(", ")})`,
+    `- Peak focus hour: ${peakLabel}`,
+    `- Not started yet: ${ins.neglectedSteps.map((s) => s.name).join(", ") || "none"}`,
     ``,
     `DSA (Striver A2Z sheet):`,
     `- Solved ${sheet.totalDone}/${sheet.total} problems`,
