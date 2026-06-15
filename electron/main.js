@@ -12,6 +12,10 @@ const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, globalShortcut } =
 
 const PORT = 3000;
 const ROOT = path.join(__dirname, "..");
+const ICON = path.join(__dirname, process.platform === "win32" ? "icon.ico" : "icon.png");
+
+// Distinct taskbar identity so Windows groups + pins the app under its own icon.
+if (process.platform === "win32") app.setAppUserModelId("com.lockedin.desktop");
 let serverProc = null;
 let win = null;
 let tray = null;
@@ -58,7 +62,7 @@ function createWindow() {
     frame: false,
     backgroundColor: "#0a0c10",
     title: "LockedIn",
-    icon: path.join(__dirname, "icon.png"),
+    icon: ICON,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -77,7 +81,7 @@ function createWindow() {
 
 function createTray() {
   try {
-    tray = new Tray(nativeImage.createFromPath(path.join(__dirname, "icon.png")));
+    tray = new Tray(nativeImage.createFromPath(path.join(__dirname, "icon.png")) /*tray keeps png*/);
     tray.setToolTip("LockedIn — your grind, tracked");
     tray.setContextMenu(
       Menu.buildFromTemplate([
