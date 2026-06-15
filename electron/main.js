@@ -20,6 +20,26 @@ let serverProc = null;
 let win = null;
 let tray = null;
 
+// Best-effort: make sure the local AI server (Ollama) is running, so the
+// in-app assistant works without the user starting anything. Harmless if it's
+// already up (the second `serve` just fails on the busy port).
+function startOllama() {
+  const candidates = [
+    path.join(process.env.LOCALAPPDATA || "", "Programs", "Ollama", "ollama.exe"),
+    "ollama",
+  ];
+  for (const exe of candidates) {
+    try {
+      const p = spawn(exe, ["serve"], { detached: true, stdio: "ignore", windowsHide: true });
+      p.on("error", () => {});
+      p.unref();
+      return;
+    } catch {
+      /* try next */
+    }
+  }
+}
+
 function startServer() {
   const nextBin = require.resolve("next/dist/bin/next");
   serverProc = spawn(process.execPath, [nextBin, "start", "-p", String(PORT)], {
