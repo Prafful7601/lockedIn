@@ -7,6 +7,7 @@
 
 const path = require("path");
 const http = require("http");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, globalShortcut } = require("electron");
 
@@ -24,13 +25,17 @@ let tray = null;
 // in-app assistant works without the user starting anything. Harmless if it's
 // already up (the second `serve` just fails on the busy port).
 function startOllama() {
+  // Keep models on D: if that's where they live (saves the small C: drive).
+  const models =
+    process.env.OLLAMA_MODELS || (fs.existsSync("D:\\Ollama\\models") ? "D:\\Ollama\\models" : undefined);
+  const env = { ...process.env, ...(models ? { OLLAMA_MODELS: models } : {}) };
   const candidates = [
     path.join(process.env.LOCALAPPDATA || "", "Programs", "Ollama", "ollama.exe"),
     "ollama",
   ];
   for (const exe of candidates) {
     try {
-      const p = spawn(exe, ["serve"], { detached: true, stdio: "ignore", windowsHide: true });
+      const p = spawn(exe, ["serve"], { detached: true, stdio: "ignore", windowsHide: true, env });
       p.on("error", () => {});
       p.unref();
       return;
