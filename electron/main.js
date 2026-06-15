@@ -9,7 +9,7 @@ const path = require("path");
 const http = require("http");
 const fs = require("fs");
 const { spawn } = require("child_process");
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, globalShortcut } = require("electron");
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, globalShortcut, session } = require("electron");
 
 const PORT = 3000;
 const ROOT = path.join(__dirname, "..");
@@ -157,6 +157,8 @@ app.whenReady().then(async () => {
   startServer();   // start the Next server (child process)
   createWindow();  // show the splash window INSTANTLY
   createTray();
+  // allow mic (for future voice) — it's your own local app
+  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(true));
   globalShortcut.register("CommandOrControl+Shift+L", () => {
     if (win) win.isVisible() ? win.focus() : win.show();
   });

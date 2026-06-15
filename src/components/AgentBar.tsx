@@ -29,8 +29,15 @@ export default function AgentBar({ placeholder }: { placeholder?: string }) {
   const recRef = useRef<SpeechRecognitionLike | null>(null);
 
   useEffect(() => {
-    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
-    setVoiceOk(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
+    const w = window as unknown as {
+      SpeechRecognition?: unknown;
+      webkitSpeechRecognition?: unknown;
+      lockedin?: { isDesktop?: boolean };
+    };
+    // Web Speech recognition has no backend in Electron, so only offer voice in
+    // the browser build (not the desktop app).
+    const desktop = !!w.lockedin?.isDesktop;
+    setVoiceOk(!desktop && !!(w.SpeechRecognition || w.webkitSpeechRecognition));
   }, []);
 
   function startVoice() {

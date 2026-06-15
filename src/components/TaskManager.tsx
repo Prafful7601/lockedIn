@@ -167,8 +167,14 @@ export default function TaskManager({
   const [voiceSupported, setVoiceSupported] = useState(false);
 
   useEffect(() => {
-    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
-    setVoiceSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
+    const w = window as unknown as {
+      SpeechRecognition?: unknown;
+      webkitSpeechRecognition?: unknown;
+      lockedin?: { isDesktop?: boolean };
+    };
+    // Voice recognition only works in the browser build, not Electron.
+    const desktop = !!w.lockedin?.isDesktop;
+    setVoiceSupported(!desktop && !!(w.SpeechRecognition || w.webkitSpeechRecognition));
   }, []);
 
   function startVoice() {
