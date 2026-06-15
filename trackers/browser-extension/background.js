@@ -3,9 +3,9 @@
 //
 // POST body: { source: "youtube", seconds }
 
-// Defaults to your live site so tracking works 24/7 without a local server.
-// Override anytime via the extension's Options.
-const DEFAULT_ENDPOINT = "https://locked-in-cyan.vercel.app/api/track";
+// Defaults to the local LockedIn desktop app (which runs on port 3000 and stays
+// alive in the tray). Override anytime via the extension's Options.
+const DEFAULT_ENDPOINT = "http://localhost:3000/api/track";
 const FLUSH_ALARM = "lockedin-flush";
 
 let buffer = 0;

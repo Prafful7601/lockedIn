@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import DesktopChrome from "@/components/DesktopChrome";
 import LogoutButton from "@/components/LogoutButton";
 import { gateEnabled } from "@/lib/auth";
 import "./globals.css";
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen font-sans antialiased">
+        <DesktopChrome />
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-20 border-b border-ink-600/60 bg-ink-950/70 backdrop-blur-xl">
             <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">

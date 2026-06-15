@@ -14,7 +14,9 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrisma(): PrismaClient {
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
+  // Desktop (Electron) build always uses the fast local SQLite file, never Turso.
+  const tursoUrl =
+    process.env.LOCKEDIN_DESKTOP === "1" ? undefined : process.env.TURSO_DATABASE_URL;
 
   if (tursoUrl) {
     // Loaded lazily so local dev never touches the libSQL packages.

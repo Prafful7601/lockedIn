@@ -14,8 +14,8 @@
       "properties": {
         "lockedin.endpoint": {
           "type": "string",
-          "default": "https://locked-in-cyan.vercel.app/api/track",
-          "description": "URL of your LockedIn /api/track endpoint. Defaults to the live site so it tracks 24/7; change to http://localhost:3000/api/track for local-only."
+          "default": "http://localhost:3000/api/track",
+          "description": "URL of your LockedIn /api/track endpoint. The local desktop app runs on port 3000 and stays in the tray, so this tracks whenever the app is running."
         },
         "lockedin.idleSeconds": {
           "type": "number",

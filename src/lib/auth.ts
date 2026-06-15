@@ -8,6 +8,8 @@
 export const AUTH_COOKIE = "lockedin_auth";
 
 export function gateEnabled(): boolean {
+  // No login on the local desktop app — it's your own machine.
+  if (process.env.LOCKEDIN_DESKTOP === "1") return false;
   return !!process.env.APP_PASSWORD;
 }
 
